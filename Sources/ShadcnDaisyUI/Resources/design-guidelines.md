@@ -433,9 +433,14 @@ How to *use* the semantic color tokens. The palette itself lives in the theme
   `bg-background`. Cards, plus anything inside a card that needs an opaque
   fill (a sticky table header, a sticky footer bar): `bg-card`. Overlays
   (sheets, dialogs, popovers, dropdown and command content): `bg-popover` with
-  `text-popover-foreground`. Subtle insets (wells, code blocks, hover):
-  `bg-base-200` / `bg-muted`. Borders: `border-base-300`. Separation comes from
-  1px borders, not from color blocks.
+  `text-popover-foreground`. Subtle insets (wells, code blocks): `bg-muted`.
+  Hover and selected rows/items: `bg-accent` (or `bg-muted`). Borders:
+  `border-border`. Separation comes from 1px borders, not from color blocks.
+- `bg-base-200` / `border-base-300` are aliases, not extra roles: base-200 is
+  muted (shadcn's 0.269 in dark, so hover/selected fills show on cards and
+  popovers) and base-300 is the border colour (translucent white/10% in dark).
+  Never use `bg-base-300` as a fill - in dark mode it is a see-through hairline
+  colour.
 - `bg-base-100` is the page, never a card or overlay. The tokens only look the
   same in light mode; in dark mode `--background` is darker than `--card` and
   `--popover`, so a card-level surface painted `bg-base-100` reads as a hole.
@@ -472,8 +477,10 @@ How to *use* the semantic color tokens. The palette itself lives in the theme
 | Page | `bg-base-100`, `bg-background` | `sdBackground` |
 | Card (and opaque fills inside one: sticky thead, sticky footer) | `bg-card` | `sdCard` |
 | Overlay (sheet, dialog, popover, dropdown, command) | `bg-popover` + `text-popover-foreground` | `sdPopover` / `sdPopoverForeground` |
-| Subtle inset | `bg-base-200`, `bg-muted` | `sdMuted` |
-| Border | `border-base-300`, `border-border` | `sdBorder` |
+| Subtle inset | `bg-muted` (alias `bg-base-200`) | `sdMuted` |
+| Hover / selected | `bg-accent`, `bg-muted` | `sdMuted` |
+| Border | `border-border` (alias `border-base-300`) | `sdBorder` |
+| Form field fill | automatic: `--input-background` (light = page, dark = `input/30`) | - |
 | Body text | inherits foreground | `sdForeground` |
 | Secondary text | `text-muted-foreground` | `sdMutedForeground` |
 | Status | `alert-info/success/warning/error`, `text-warning`, … | `sdInfo/…` |
@@ -555,17 +562,21 @@ the separation work, shadows are garnish.
 
 - Radius always comes from the theme scale - never hardcode pixel radii.
   [web] `rounded-sm/md/lg/xl/full` only (they resolve to the `--radius` scale).
-- Radius roles: `md` for fields and buttons, `lg` for popovers/menus/modal boxes,
-  `xl` for cards and dialogs, `full` for pills, badges, and avatars. `sm` is for
-  small nested elements (checkboxes, menu items, kbd).
+- Radius roles: `md` for fields, buttons, and floating content (popovers, menus,
+  select panels, tooltips), `lg` for alerts and tab lists, `xl` for cards,
+  dialogs/modal boxes, and the command palette, `full` for pills, badges, and
+  avatars. `sm` is for small nested elements (checkboxes, menu items, kbd).
 - Don't mix roles on one element family - every card on a screen has the same
   radius, every field the same.
-- Elevation is minimal and fixed per role: page and most surfaces are **flat**;
-  interactive controls carry `shadow-xs`; cards, popovers, menus, and modals
-  carry `shadow-sm`. Nothing carries more.
-- Overlays separate via the backdrop dim + `shadow-sm`, not bigger shadows.
-  Never add `shadow-md/lg/xl` or custom shadows.
-- Borders are 1px `border-base-300` (web) / `sdBorder` (iOS). Don't fake depth
+- Elevation is fixed per role (shadcn's): page and most surfaces are **flat**;
+  controls carry `shadow-xs`; cards `shadow-sm`; floating content (popover, menu,
+  select/combobox/date panels, context menu) `shadow-md` plus a 1px
+  `ring-foreground/10` instead of a border; dialogs, the command palette, sheets
+  and drawers `shadow-lg`. The theme applies these - never add shadows in
+  markup, and never `shadow-xl/2xl` or custom shadows.
+- Every modal surface (dialog, sheet, drawer, command) uses the same backdrop:
+  `bg-black/50`. Don't add blur or a second dim.
+- Borders are 1px `border-border` (web) / `sdBorder` (iOS). Don't fake depth
   with darker borders or gradient edges.
 - Hover/focus never change elevation - state feedback is color and ring
   (`foundations-interaction.md`), not lift.
@@ -577,9 +588,9 @@ the separation work, shadows are garnish.
 | Token | Value | Roles |
 |---|---|---|
 | `rounded-sm` | 6px / 6pt | checkboxes, menu items, kbd, nested chips |
-| `rounded-md` | 8px / 8pt | buttons, inputs, selects, tabs triggers, tooltips, skeletons |
-| `rounded-lg` | 10px / 10pt | popovers, dropdown/menu boxes, modal boxes, alerts, tab lists |
-| `rounded-xl` | 14px / 14pt | cards, dialogs |
+| `rounded-md` | 8px / 8pt | buttons, inputs, selects, tabs triggers, tooltips, skeletons, popovers, dropdown/menu boxes |
+| `rounded-lg` | 10px / 10pt | alerts, tab lists |
+| `rounded-xl` | 14px / 14pt | cards, dialogs / modal boxes, command palette |
 | `rounded-full` | pill | badges, avatars, progress bars, pills |
 
 ### Elevation ladder
@@ -588,8 +599,9 @@ the separation work, shadows are garnish.
 |---|---|---|
 | 0 - flat | none | page, sections, list rows, most surfaces |
 | 1 - control | `shadow-xs` (0 1px 2px @5%) | buttons, inputs |
-| 2 - raised | `shadow-sm` (0 1px 3px @10%) | cards, popovers, menus, modal boxes, toasts |
-| overlay | backdrop dim + `shadow-sm` | dialogs, sheets, drawers |
+| 2 - raised | `shadow-sm` (0 1px 3px @10%) | cards |
+| 3 - floating | `shadow-md` (0 4px 6px @10%) + 1px `ring-foreground/10` | popovers, menus, select/combobox/date panels, context menus |
+| 4 - overlay | `bg-black/50` backdrop + `shadow-lg` (0 10px 15px @10%) | dialogs (+ ring), command palette (+ ring), sheets, drawers |
 
 ## iOS / SwiftUI notes
 
