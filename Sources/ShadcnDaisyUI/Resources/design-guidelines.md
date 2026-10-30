@@ -463,6 +463,13 @@ How to *use* the semantic color tokens. The palette itself lives in the theme
   card behind it (the same goes for a sticky footer bar in a card).
 - A persistent app sidebar is page chrome (`bg-base-100`, as `<.sidebar_layout>`
   renders it). A drawer that slides over content is an overlay (`bg-popover`).
+- A secondary chip's fill is `--chip-background` (`<.chip_row>`, stacked chips),
+  not `--secondary`: `--secondary` is about 1.09:1 on a white page, so chips nearly
+  disappear; `--chip-background` is about 1.26:1 in light (0.922) and `--secondary`
+  in dark. Buttons and other badges keep `--secondary`. A brand overrides it like
+  any bridge token, and keeps chip text at 4.5:1 on it. A stack's edges and front
+  draw their 1px line from this fill, because in light mode it equals `--border-color`
+  (an outline chip's stack uses `border-border`).
 - Secondary text is `text-muted-foreground`; body text inherits the foreground.
   No other text colors except status and destructive.
 - **Brand splash rule**: a brand recolors by overriding theme tokens in its own
@@ -494,6 +501,7 @@ How to *use* the semantic color tokens. The palette itself lives in the theme
 | Subtle inset | `bg-muted` (alias `bg-base-200`) | `sdMuted` |
 | Hover / selected | `bg-accent`, `bg-muted` | `sdMuted` |
 | Border | `border-border` (alias `border-base-300`) | `sdBorder` |
+| Chip | automatic: `--chip-background` (`badge-secondary` on `.chip` only) | - |
 | Form field fill | automatic: `--input-background` (light = transparent, dark = `input/30`) | - |
 | Outline button, active tab | automatic: `--outline-*`, `--tab-*` (light = `bg-background`, dark = `input/30` + `border-input`, same family as fields) | - |
 | Body text | inherits foreground | `sdForeground` |
@@ -694,6 +702,12 @@ decorates.
   reveal while its first chip scales in, and closing it while its last chip
   scales out, run together as one motion. Give every chip a `value` so a
   patch removes that chip, not the last one.
+- **A stacked chip's values** slide out of the stack into the row and back
+  (`translate` + `scale` 0.9 ↔ 1 + opacity, 180ms ease-out); the card edges tuck in
+  and the chips after it slide over (FLIP on `translate`, as for any chip). The
+  stack's face and × don't move. Hover waits about 120ms, so a pointer crossing the
+  row doesn't make it ripple, and it closes about 150ms after the pointer leaves.
+  Instant under reduced motion, and nothing is lost when it is.
 - Theme switching is **instant by design** (no fade - fading light↔dark passes
   text through a grey crossover). [web] The theme CSS only zeroes out
   `transition-duration` while `<html>` carries the `theme-transition` class, so
@@ -716,6 +730,7 @@ decorates.
 | small surface | 180ms | ease | opacity, transform | popover, tooltip, ⌘K palette |
 | large surface | 300ms | ease | translate, backdrop | sheet, drawer |
 | chip in/out | 150ms | ease-out | scale, opacity, translate (neighbours) | `<.chip_row>` chips |
+| chips unstack | 180ms | ease-out | translate, scale, opacity | a stacked chip's values leaving and rejoining it |
 | row reveal | 180ms | ease-out | grid-template-rows, opacity | filter chip row, inline alert, accordion, trace detail |
 | theme switch | 0ms | - | - | instant by design |
 
